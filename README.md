@@ -8,15 +8,23 @@ This is the palantir project.
 ## Breakdown of services
 
 ### users
-[ ] basic
+[x] basic
 ### videos
-[ ] video title
-[ ] log video
-[ ] broadcaster
-[ ] upload file
-[ ] status
-[ ] related log id 
+[x] video title
+[x] log video
+[x] broadcaster
+[x] upload file
+[x] status
+[x] related log id 
 ### links
-[ ] video_id
-[ ] link
-[ ] expired_at
+[x] video_id
+[x] link
+[x] expired_at
+[x] downloaded_at
+[x] ip_address
+[x] user_agent 
+[x] shortcode
+[x] recipients
+[x] email_sent_at
+[x] file_uploaded_at
+
