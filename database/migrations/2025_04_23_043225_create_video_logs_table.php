@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('log_id')->nullable();
             $table->string('title');
             $table->string('broadcaster');
+            $table->date('due_date')->nullable();
             $table->string('file')->nullable();
             $table->string('status')->default('todo');
             $table->unsignedBigInteger('related_log_id')->nullable();
