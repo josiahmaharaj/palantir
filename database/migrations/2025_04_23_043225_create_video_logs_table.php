@@ -13,11 +13,13 @@ return new class extends Migration
     {
         Schema::create('video_logs', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('log_id')->nullable();
             $table->string('title');
             $table->string('broadcaster');
             $table->string('file')->nullable();
             $table->string('status')->default('todo');
             $table->unsignedBigInteger('related_log_id')->nullable();
+            $table->string('comments')->nullable();
             $table->timestamps();
         });
     }
