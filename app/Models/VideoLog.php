@@ -18,6 +18,11 @@ class VideoLog extends Model
         'related_log_id',
     ];
 
+    // casts
+    protected $casts = [
+        'due_date' => 'date:Y-m-d',
+    ];
+
     public function broadcaster()
     {
         return $this->belongsTo(Broadcaster::class, 'broadcaster');
