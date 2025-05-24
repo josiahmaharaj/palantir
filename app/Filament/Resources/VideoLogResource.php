@@ -25,17 +25,30 @@ class VideoLogResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\TextInput::make('log_id')
+                    ->numeric()
+                    ->required(),
                 Forms\Components\TextInput::make('title')
                     ->required(),
                 Forms\Components\Select::make('broadcaster')
                     ->options(function () {
-                        return array_column(Broadcaster::cases(), 'value');
+                        $options = [];
+                        foreach (Broadcaster::cases() as $case) {
+                            $options[$case->value] = $case->value;
+                        }
+                        return $options;
                     })
+                    ->required(),
+                Forms\Components\DatePicker::make('due_date')
                     ->required(),
                 Forms\Components\FileUpload::make('file'),
                 Forms\Components\Select::make('status')
                     ->options(function () {
-                        return array_column(Status::cases(), 'value');
+                        $options = [];
+                        foreach (Status::cases() as $case) {
+                            $options[$case->value] = $case->value;
+                        }
+                        return $options;
                     })
                     ->required(),
                 Forms\Components\TextInput::make('related_log_id')
@@ -46,14 +59,22 @@ class VideoLogResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('due_date', 'desc')
             ->columns([
+                Tables\Columns\TextColumn::make('log_id')
+                    ->numeric()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('title')
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('broadcaster')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('file')
+                Tables\Columns\TextColumn::make('due_date')
+                    ->date()
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('status')
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('related_log_id')
                     ->numeric()
@@ -68,7 +89,11 @@ class VideoLogResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('broadcaster')
+                    ->options([
+                        'MTM' => 'MTM',
+                        'TV6' => 'TV6',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
