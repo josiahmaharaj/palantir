@@ -18,7 +18,7 @@ class MTMOverview extends BaseWidget
         $log = $latest->log_id;
         $nextDate = $latest->due_date;
         $status = Status::Todo->value;
-        if ($nextDate < now()) {
+        if ($nextDate <= now()) {
             $nextDate = $nextDate->addWeek();
             $log = $log + 1;
         }

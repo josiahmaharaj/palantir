@@ -24,7 +24,7 @@ class TV6Overview extends BaseWidget
         }
 
         return [
-            Stat::make('Next MTM', $log . ': ' . $nextDate->format('jS M, Y'))
+            Stat::make('Next TV6', $log . ': ' . $nextDate->format('jS M, Y'))
                 ->description($status)
                 ->color('success'),
         ];
