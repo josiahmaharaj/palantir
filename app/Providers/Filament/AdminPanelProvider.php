@@ -60,6 +60,7 @@ class AdminPanelProvider extends PanelProvider
                 // Authenticate::class,
             ])->plugin(
                 FilamentFullCalendarPlugin::make()
+                ->selectable(true)
             );
     }
 }

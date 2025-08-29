@@ -7,8 +7,10 @@ use App\Filament\Resources\VideoLogResource\Pages;
 use App\Filament\Resources\VideoLogResource\RelationManagers;
 use App\Models\VideoLog;
 use App\Status;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -27,8 +29,20 @@ class VideoLogResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('log_id')
                     ->numeric()
-                    ->required(),
+                    ->required()
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function ($state, $set, $get) {
+                        $broadcaster = $get('broadcaster');
+                        $formattedDate = Carbon::parse($get('due_date'))->format('jFY');
+
+                        if($broadcaster == Broadcaster::MTM->value) {
+                            $set('title', $state . '_MTM_DaybreakAssembly_' . $formattedDate);
+                        } else {
+                            $set('title', $state . '_DaybreakAssembly_' . $formattedDate);
+                        }
+                    }),
                 Forms\Components\TextInput::make('title')
+                    ->live()
                     ->required(),
                 Forms\Components\Select::make('broadcaster')
                     ->options(function () {

@@ -7,13 +7,26 @@ use App\Filament\Resources\VideoLogResource;
 use App\Models\VideoLog;
 use App\Status;
 use Carbon\Carbon;
-use Filament\Widgets\Widget;
+use Filament\Forms\Form;
 use Saade\FilamentFullCalendar\Data\EventData;
 use Saade\FilamentFullCalendar\Widgets\FullCalendarWidget;
-
+use Saade\FilamentFullCalendar\Actions;
 class CalendarWidget extends FullCalendarWidget
 {
     // protected static string $view = 'filament.resources.video-log-resource.widgets.calendar-widget';
+
+    protected function headerActions(): array
+    {
+        return [
+            Actions\CreateAction::make()
+            ->mountUsing(
+                function ($form, array $arguments) {
+                   $currentDate = $arguments['start']->format('Y-m-d');
+                   return redirect(VideoLogResource::getUrl(name: 'create') . "?date={$currentDate}");
+                }
+            )
+        ];
+    }
 
     public function fetchEvents(array $fetchInfo): array
     {
