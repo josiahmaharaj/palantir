@@ -10,7 +10,6 @@ use App\Status;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
@@ -35,10 +34,10 @@ class VideoLogResource extends Resource
                         $broadcaster = $get('broadcaster');
                         $formattedDate = Carbon::parse($get('due_date'))->format('jFY');
 
-                        if($broadcaster == Broadcaster::MTM->value) {
-                            $set('title', $state . '_MTM_DaybreakAssembly_' . $formattedDate);
+                        if ($broadcaster == Broadcaster::MTM->value) {
+                            $set('title', $state.'_MTM_DaybreakAssembly_'.$formattedDate);
                         } else {
-                            $set('title', $state . '_DaybreakAssembly_' . $formattedDate);
+                            $set('title', $state.'_DaybreakAssembly_'.$formattedDate);
                         }
                     }),
                 Forms\Components\TextInput::make('title')
@@ -50,59 +49,62 @@ class VideoLogResource extends Resource
                         foreach (Broadcaster::cases() as $case) {
                             $options[$case->value] = $case->value;
                         }
+
                         return $options;
                     })
                     ->required(),
                 Forms\Components\DatePicker::make('due_date')
                     ->required(),
                 Forms\Components\FileUpload::make('file')
-                ->preserveFilenames()
-                ->maxSize(2048 * 1024 * 1024)
-                ->disk('public')                // adjust if needed
-                ->reactive()                    // ensures afterStateUpdated fires promptly
-                ->dehydrateStateUsing(fn ($state) => is_array($state) ? ($state[0] ?? null) : $state)
-                ->afterStateUpdated(function ($state, Set $set, $livewire) {
-                    $record = method_exists($livewire, 'getRecord') ? $livewire->getRecord() : ($livewire->record ?? null);
+                    ->preserveFilenames()
+                    ->maxSize(2048 * 1024 * 1024)
+                    ->disk('public')                // adjust if needed
+                    ->reactive()                    // ensures afterStateUpdated fires promptly
+                    ->dehydrateStateUsing(fn ($state) => is_array($state) ? ($state[0] ?? null) : $state)
+                    ->afterStateUpdated(function ($state, Set $set, $livewire) {
+                        $record = method_exists($livewire, 'getRecord') ? $livewire->getRecord() : ($livewire->record ?? null);
 
-                    // Handle removal
-                    if (blank($state)) {
-                        if ($record && filled($record->file)) {
-                            VideoLogService::deleteFile($record->file);
-                            $record->forceFill(['file' => null])->save();
+                        // Handle removal
+                        if (blank($state)) {
+                            if ($record && filled($record->file)) {
+                                VideoLogService::deleteFile($record->file);
+                                $record->forceFill(['file' => null])->save();
+                            }
+                            $set('file', [null]);
+
+                            return;
                         }
-                        $set('file', [null]);
-                        return;
-                    }
 
-                    try {
-                    // Normalize to TemporaryUploadedFile
-                    $path = VideoLogService::handleFileUploaded($state, $livewire);
+                        try {
+                            // Normalize to TemporaryUploadedFile
+                            $path = VideoLogService::handleFileUploaded($state, $livewire);
 
-                    // Keep state as array to satisfy FileUpload internals
-                    $set('file', [$path]);
+                            // Keep state as array to satisfy FileUpload internals
+                            $set('file', [$path]);
 
-                    VideoLogService::sendDownloadLink($record);
+                            VideoLogService::sendDownloadLink($record);
 
-                    Notification::make()
-                        ->title('File uploaded successfully!')
-                        ->body('Download links have been sent to all contacts.')
-                        ->success()
-                        ->send();
+                            Notification::make()
+                                ->title('File uploaded successfully!')
+                                ->body('Download links have been sent to all contacts.')
+                                ->success()
+                                ->send();
 
-                    } catch (\Exception $e) {
-                        Notification::make()
-                            ->title('Error')
-                            ->body('An error occurred while uploading the file: ' . $e->getMessage())
-                            ->danger()
-                            ->send();
-                    }
-                }),
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Error')
+                                ->body('An error occurred while uploading the file: '.$e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
                 Forms\Components\Select::make('status')
                     ->options(function () {
                         $options = [];
                         foreach (Status::cases() as $case) {
                             $options[$case->value] = $case->value;
                         }
+
                         return $options;
                     })
                     ->required(),
@@ -116,7 +118,7 @@ class VideoLogResource extends Resource
         return $table
             ->defaultSort('due_date', 'desc')
             ->headerActions([
-                
+
             ])
             ->columns([
                 Tables\Columns\TextColumn::make('log_id')

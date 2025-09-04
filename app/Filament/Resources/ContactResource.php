@@ -4,14 +4,12 @@ namespace App\Filament\Resources;
 
 use App\Broadcaster;
 use App\Filament\Resources\ContactResource\Pages;
-use App\Filament\Resources\ContactResource\RelationManagers;
 use App\Models\Contact;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Validation\Rule;
 
 class ContactResource extends Resource
 {
@@ -27,7 +25,7 @@ class ContactResource extends Resource
                     ->email()
                     ->required(),
                 Forms\Components\Select::make('broadcast')
-                    ->options(collect(Broadcaster::cases())->mapWithKeys(fn($case) => [$case->value => $case->value]))
+                    ->options(collect(Broadcaster::cases())->mapWithKeys(fn ($case) => [$case->value => $case->value]))
                     ->required(),
             ]);
     }

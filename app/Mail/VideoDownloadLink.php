@@ -4,7 +4,6 @@ namespace App\Mail;
 
 use App\Models\VideoLog;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -26,7 +25,7 @@ class VideoDownloadLink extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Video Download Link - ' . $this->videoLog->title,
+            subject: 'Video Download Link - '.$this->videoLog->title,
         );
     }
 

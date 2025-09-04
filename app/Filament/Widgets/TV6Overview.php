@@ -5,7 +5,6 @@ namespace App\Filament\Widgets;
 use App\Broadcaster;
 use App\Models\VideoLog;
 use App\Status;
-use Carbon\Carbon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -24,7 +23,7 @@ class TV6Overview extends BaseWidget
         }
 
         return [
-            Stat::make('Next TV6', $log . ': ' . $nextDate->format('jS M, Y'))
+            Stat::make('Next TV6', $log.': '.$nextDate->format('jS M, Y'))
                 ->description($status)
                 ->color('success'),
         ];

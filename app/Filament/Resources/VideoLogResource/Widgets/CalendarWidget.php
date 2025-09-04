@@ -7,10 +7,10 @@ use App\Filament\Resources\VideoLogResource;
 use App\Models\VideoLog;
 use App\Status;
 use Carbon\Carbon;
-use Filament\Forms\Form;
+use Saade\FilamentFullCalendar\Actions;
 use Saade\FilamentFullCalendar\Data\EventData;
 use Saade\FilamentFullCalendar\Widgets\FullCalendarWidget;
-use Saade\FilamentFullCalendar\Actions;
+
 class CalendarWidget extends FullCalendarWidget
 {
     // protected static string $view = 'filament.resources.video-log-resource.widgets.calendar-widget';
@@ -19,12 +19,13 @@ class CalendarWidget extends FullCalendarWidget
     {
         return [
             Actions\CreateAction::make()
-            ->mountUsing(
-                function ($form, array $arguments) {
-                   $currentDate = $arguments['start']->format('Y-m-d');
-                   return redirect(VideoLogResource::getUrl(name: 'create') . "?date={$currentDate}");
-                }
-            )
+                ->mountUsing(
+                    function ($form, array $arguments) {
+                        $currentDate = $arguments['start']->format('Y-m-d');
+
+                        return redirect(VideoLogResource::getUrl(name: 'create')."?date={$currentDate}");
+                    }
+                ),
         ];
     }
 
@@ -35,7 +36,7 @@ class CalendarWidget extends FullCalendarWidget
             ->where('due_date', '<=', Carbon::create(now()->year, now()->month, 1)->endOfMonth())
             ->get()
             ->map(
-                fn(VideoLog $log) => EventData::make()
+                fn (VideoLog $log) => EventData::make()
                     ->id($log->id)
                     ->title($log->title)
                     ->start($log->due_date)

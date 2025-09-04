@@ -4,6 +4,6 @@ namespace App;
 
 enum Broadcaster: string
 {
-    case MTM = "MTM";
-    case TV6 = "TV6";
+    case MTM = 'MTM';
+    case TV6 = 'TV6';
 }

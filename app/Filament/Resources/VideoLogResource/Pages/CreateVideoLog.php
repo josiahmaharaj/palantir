@@ -5,7 +5,6 @@ namespace App\Filament\Resources\VideoLogResource\Pages;
 use App\Broadcaster;
 use App\Filament\Resources\VideoLogResource;
 use Carbon\Carbon;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateVideoLog extends CreateRecord
@@ -16,7 +15,7 @@ class CreateVideoLog extends CreateRecord
     {
         $dueDate = request('date') ?? null;
         if ($dueDate) {
-            //if date is a saturday
+            // if date is a saturday
             if (Carbon::parse($dueDate)->isSaturday()) {
                 $broadcaster = Broadcaster::TV6->value;
             } else {
@@ -28,6 +27,4 @@ class CreateVideoLog extends CreateRecord
             ]);
         }
     }
-
-
 }
