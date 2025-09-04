@@ -144,7 +144,6 @@ class VideoLogService
 
     public static function deleteFile($filePath)
     {
-        dd($filePath);
         Storage::disk('public')->delete($filePath);
     }
 }
