@@ -4,18 +4,18 @@ namespace App\Filament\Resources;
 
 use App\Broadcaster;
 use App\Filament\Resources\VideoLogResource\Pages;
-use App\Filament\Resources\VideoLogResource\RelationManagers;
 use App\Models\VideoLog;
+use App\Services\VideoLogService;
 use App\Status;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class VideoLogResource extends Resource
 {
@@ -55,7 +55,48 @@ class VideoLogResource extends Resource
                     ->required(),
                 Forms\Components\DatePicker::make('due_date')
                     ->required(),
-                Forms\Components\FileUpload::make('file'),
+                Forms\Components\FileUpload::make('file')
+                ->preserveFilenames()
+                ->maxSize(2048 * 1024 * 1024)
+                ->disk('public')                // adjust if needed
+                ->reactive()                    // ensures afterStateUpdated fires promptly
+                ->dehydrateStateUsing(fn ($state) => is_array($state) ? ($state[0] ?? null) : $state)
+                ->afterStateUpdated(function ($state, Set $set, $livewire) {
+                    $record = method_exists($livewire, 'getRecord') ? $livewire->getRecord() : ($livewire->record ?? null);
+
+                    // Handle removal
+                    if (blank($state)) {
+                        if ($record && filled($record->file)) {
+                            VideoLogService::deleteFile($record->file);
+                            $record->forceFill(['file' => null])->save();
+                        }
+                        $set('file', [null]);
+                        return;
+                    }
+
+                    try {
+                    // Normalize to TemporaryUploadedFile
+                    $path = VideoLogService::handleFileUploaded($state, $livewire);
+
+                    // Keep state as array to satisfy FileUpload internals
+                    $set('file', [$path]);
+
+                    VideoLogService::sendDownloadLink($record);
+
+                    Notification::make()
+                        ->title('File uploaded successfully!')
+                        ->body('Download links have been sent to all contacts.')
+                        ->success()
+                        ->send();
+
+                    } catch (\Exception $e) {
+                        Notification::make()
+                            ->title('Error')
+                            ->body('An error occurred while uploading the file: ' . $e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),
                 Forms\Components\Select::make('status')
                     ->options(function () {
                         $options = [];
@@ -74,6 +115,9 @@ class VideoLogResource extends Resource
     {
         return $table
             ->defaultSort('due_date', 'desc')
+            ->headerActions([
+                
+            ])
             ->columns([
                 Tables\Columns\TextColumn::make('log_id')
                     ->numeric()
