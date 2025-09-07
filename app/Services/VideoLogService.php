@@ -18,7 +18,7 @@ class VideoLogService
     {
         // Generate a temporary encrypted link
         $token = Str::random(64);
-        $expiresAt = now()->addDays(7); // Link expires in 7 days
+        $expiresAt = now()->addMinute(4); // Link expires in 7 days
 
         // Create the link record
         $link = Link::create([
@@ -30,7 +30,11 @@ class VideoLogService
         ]);
 
         // Get all contacts
-        $contacts = Contact::all();
+        $contacts = Contact::where('broadcast', $videoLog->broadcaster)->get();
+
+        if($contacts->isEmpty()) {
+            return false;
+        }
 
         // Generate the download URL
         $downloadUrl = route('video.download', ['token' => $token]);
@@ -40,7 +44,7 @@ class VideoLogService
 
         // Send email to each contact
         foreach ($contacts as $contact) {
-            Mail::to($contact->email)->send(new VideoDownloadLink(
+            Mail::to($contact->email)->queue(new VideoDownloadLink(
                 config('app.name'),
                 $videoLog,
                 $downloadUrl,
