@@ -4,12 +4,20 @@ namespace App\Filament\Resources\VideoLogResource\Pages;
 
 use App\Broadcaster;
 use App\Filament\Resources\VideoLogResource;
+use App\Services\VideoLogService;
 use Carbon\Carbon;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateVideoLog extends CreateRecord
 {
     protected static string $resource = VideoLogResource::class;
+
+    protected $listeners = [
+        'streaming-upload-completed' => 'handleStreamingUploadCompleted',
+    ];
+
+    public array $uploadMeta = [];
 
     public function mount(): void
     {
@@ -25,6 +33,32 @@ class CreateVideoLog extends CreateRecord
                 'due_date' => $dueDate,
                 'broadcaster' => $broadcaster,
             ]);
+        }
+    }
+
+    public function handleStreamingUploadCompleted(): void
+    {
+        $payload = func_get_args()[0] ?? [];
+        if (! is_array($payload)) {
+            return;
+        }
+
+        $this->uploadMeta = $payload;
+        $this->form->fill(array_merge($this->form->getState(), [
+            'file' => $payload['file_path'],
+        ]));
+
+        Notification::make()
+            ->title('Upload complete')
+            ->body('The video file has been attached to this log.')
+            ->success()
+            ->send();
+    }
+
+    protected function afterCreate(): void
+    {
+        if ($this->record && filled($this->record->file)) {
+            VideoLogService::sendDownloadLink($this->record);
         }
     }
 }

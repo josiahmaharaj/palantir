@@ -32,7 +32,7 @@ class VideoLogService
         // Get all contacts
         $contacts = Contact::where('broadcast', $videoLog->broadcaster)->get();
 
-        if($contacts->isEmpty()) {
+        if ($contacts->isEmpty()) {
             return false;
         }
 
@@ -69,7 +69,10 @@ class VideoLogService
             return 'Unknown size';
         }
 
-        $fullPath = storage_path('app/public/'.$filePath);
+        $disk = Storage::disk('local');
+        $fullPath = $disk->exists($filePath)
+            ? $disk->path($filePath)
+            : storage_path('app/public/'.$filePath);
 
         if (! file_exists($fullPath)) {
             return 'File not found';
@@ -132,13 +135,13 @@ class VideoLogService
         $safeName = Str::slug($originalName).'.'.$extension;
 
         // Store the file with its original/safe name in "videos/"
-        $path = $uploaded->storeAs('', $safeName, 'public');
+        $path = $uploaded->storeAs('', $safeName, 'local');
 
         // Persist to DB immediately
         $record = method_exists($livewire, 'getRecord') ? $livewire->getRecord() : ($livewire->record ?? null);
         if ($record) {
             if (filled($record->file)) {
-                Storage::disk('public')->delete($record->file);
+                Storage::disk('local')->delete($record->file);
             }
             $record->forceFill(['file' => $path])->save();
         }
@@ -148,6 +151,6 @@ class VideoLogService
 
     public static function deleteFile($filePath)
     {
-        Storage::disk('public')->delete($filePath);
+        Storage::disk('local')->delete($filePath);
     }
 }

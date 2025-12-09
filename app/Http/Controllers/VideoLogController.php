@@ -8,6 +8,7 @@ use App\Models\Link;
 use App\Models\VideoLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class VideoLogController extends Controller
@@ -73,10 +74,11 @@ class VideoLogController extends Controller
             'user_agent' => $request->userAgent(),
         ]);
 
-        // Return the file for download
-        return response()->download(
-            storage_path('app/public/'.$videoLog->file),
-            $videoLog->file,
-        );
+        $disk = Storage::disk('local');
+        $path = $disk->exists($videoLog->file)
+            ? $disk->path($videoLog->file)
+            : storage_path('app/public/'.$videoLog->file);
+
+        return response()->download($path, basename($videoLog->file));
     }
 }
