@@ -8,6 +8,7 @@ use App\Services\VideoLogService;
 use Carbon\Carbon;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Validation\ValidationException;
 
 class CreateVideoLog extends CreateRecord
 {
@@ -53,6 +54,26 @@ class CreateVideoLog extends CreateRecord
             ->body('The video file has been attached to this log.')
             ->success()
             ->send();
+
+        try {
+            $this->create();
+        } catch (\Throwable $e) {
+            if ($e instanceof ValidationException) {
+                Notification::make()
+                    ->title('Save failed')
+                    ->body('Please complete required fields before saving.')
+                    ->danger()
+                    ->send();
+
+                return;
+            }
+
+            Notification::make()
+                ->title('Save failed')
+                ->body('Upload finished, but saving the record failed: '.$e->getMessage())
+                ->danger()
+                ->send();
+        }
     }
 
     protected function afterCreate(): void

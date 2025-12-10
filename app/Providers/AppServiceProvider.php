@@ -25,7 +25,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('upload-chunks', function (Request $request) {
             $key = $request->user()?->getAuthIdentifier() ?? $request->ip();
 
-            return Limit::perMinute(120)->by($key);
+            return Limit::perMinute(600)->by($key);
         });
     }
 }

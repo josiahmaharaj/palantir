@@ -11,16 +11,17 @@
         'fieldId' => $fieldId,
         'initialFile' => basename((string) $getState()),
     ]))"
-    x-init="init()"
     class="space-y-3"
 >
     <div class="flex items-center gap-3">
-        <button type="button" class="fi-btn fi-btn-primary" x-on:click="selectFile()">
+        {{-- <button type="button" class="fi-btn fi-btn-primary" x-on:click="selectFile()">
             <span>Select file</span>
-        </button>
-
-        <div class="text-sm text-gray-700 dark:text-gray-300" x-text="fileName || 'No file selected'"></div>
+        </button> --}}
+        <x-filament::button type="button" x-on:click="selectFile()">
+            <span>Select file</span>
+        </x-filament::button>
     </div>
+    <div class="text-sm text-gray-700 dark:text-gray-300" x-text="fileName || 'No file selected'"></div>
 
     <input x-ref="fileInput" type="file" class="hidden" x-on:change="handleFileChosen">
 
@@ -31,8 +32,15 @@
                 <span x-text="speedText"></span>
             </div>
 
-            <div class="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                <div class="h-full bg-primary-500 transition-all" :style="`width: ${progress}%`"></div>
+            <div class="flex items-center gap-3">
+            <div style="width: 100%;">
+                <div style="width: 100%; background-color: #e0e0e0; padding: 3px; border-radius: 3px; box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);">
+                    <span :style="`display: block; height: 22px; background-color: #659cef; border-radius: 3px; transition: width 500ms ease-in-out; width: ${progress}%;`"></span>
+                </div>
+            </div>
+                <div class="flex items-center justify-end text-xs text-gray-600 dark:text-gray-300">
+                    <span x-text="`${progress}%`"></span>
+                </div>
             </div>
         </div>
     </template>
@@ -41,6 +49,10 @@
 </div>
 
 <script>
+(function() {
+    if (window.__streamingFileUploadRegistered) return;
+    window.__streamingFileUploadRegistered = true;
+
     const generateUuid = () => {
         if (window.crypto && typeof window.crypto.randomUUID === 'function') {
             return window.crypto.randomUUID();
@@ -241,6 +253,9 @@
                             }
 
                             resolve(payload);
+                        } else if (xhr.status === 429 && attempt < 6) {
+                            const backoff = 500 * attempt;
+                            setTimeout(() => resolve(this.sendChunk(index, attempt + 1)), backoff);
                         } else if (attempt < 3) {
                             resolve(this.sendChunk(index, attempt + 1));
                         } else {
@@ -287,4 +302,5 @@
     } else {
         document.addEventListener('alpine:init', boot, { once: true });
     }
+})();
 </script>

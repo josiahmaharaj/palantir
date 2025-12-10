@@ -56,7 +56,6 @@ class VideoLogResource extends Resource
                 StreamingFileUpload::make('file')
                     ->label('Video')
                     ->chunkSize(10 * 1024 * 1024)
-                    ->required()
                     ->reactive()
                     ->dehydrated(true),
                 Forms\Components\Select::make('status')

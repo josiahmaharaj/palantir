@@ -59,14 +59,23 @@ class ProcessChunkUpload
             abort(409, 'Chunks must be uploaded sequentially.');
         }
 
-        $detectedMime = $this->detectMime($chunkBinary);
         $allowed = config('upload.allowed_mimes');
         $allowedExtensions = config('upload.allowed_extensions');
         $extension = strtolower((string) pathinfo($data->originalName, PATHINFO_EXTENSION));
+        $detectedMime = $upload->mime_type ?? $this->detectMime($chunkBinary);
+
         $isAllowedMime = in_array($detectedMime, $allowed, true);
         $isAllowedByExtension = $detectedMime === 'application/octet-stream' && in_array($extension, $allowedExtensions, true);
+
         if (! $isAllowedMime && ! $isAllowedByExtension) {
-            abort(415, 'This file type is not allowed.');
+            // Try one more detection before failing in case the first chunk was misread.
+            $detectedMime = $this->detectMime($chunkBinary);
+            $isAllowedMime = in_array($detectedMime, $allowed, true);
+            $isAllowedByExtension = $detectedMime === 'application/octet-stream' && in_array($extension, $allowedExtensions, true);
+
+            if (! $isAllowedMime && ! $isAllowedByExtension) {
+                abort(415, 'This file type is not allowed.');
+            }
         }
 
         $rangeLength = ($data->contentEnd - $data->contentStart) + 1;
