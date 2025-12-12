@@ -27,7 +27,8 @@ class UploadChunkData
         $uploadId = (string) $request->header('X-Upload-Id');
         $chunkIndex = (int) $request->header('X-Chunk-Index');
         $totalChunks = (int) $request->header('X-Total-Chunks');
-        $originalName = urldecode((string) $request->header('X-Original-Name'));
+        $originalNameHeader = (string) $request->header('X-Original-Name');
+        $originalName = base64_decode($originalNameHeader, true) ?: urldecode($originalNameHeader);
         $mimeType = $request->header('X-Mime-Type');
 
         if ($uploadId === '' || $originalName === '' || $totalChunks < 1) {
