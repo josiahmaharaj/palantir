@@ -4,7 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Broadcaster;
 use App\Filament\Resources\VideoLogResource\Pages;
-use App\Forms\Components\StreamingFileUpload;
+use App\Forms\Components\ChunkedFileUpload;
 use App\Models\VideoLog;
 use App\Status;
 use Carbon\Carbon;
@@ -53,11 +53,12 @@ class VideoLogResource extends Resource
                     ->required(),
                 Forms\Components\DatePicker::make('due_date')
                     ->required(),
-                StreamingFileUpload::make('file')
+                ChunkedFileUpload::make('upload_path')
                     ->label('Video')
                     ->chunkSize(10 * 1024 * 1024)
                     ->reactive()
-                    ->dehydrated(true),
+                    ->dehydrated(false)
+                    ->formatStateUsing(fn ($state, ?VideoLog $record) => $record?->videoMedia()?->file_name),
                 Forms\Components\Select::make('status')
                     ->options(function () {
                         $options = [];

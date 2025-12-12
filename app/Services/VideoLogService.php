@@ -8,9 +8,9 @@ use App\Models\Link;
 use App\Models\VideoLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class VideoLogService
 {
@@ -40,7 +40,12 @@ class VideoLogService
         $downloadUrl = route('video.download', ['token' => $token]);
 
         // Get file size for email
-        $fileSize = self::getFileSize($videoLog->file);
+        $media = $videoLog->videoMedia();
+        if (! $media) {
+            return false;
+        }
+
+        $fileSize = self::getFileSize($media);
 
         // Send email to each contact
         foreach ($contacts as $contact) {
@@ -63,22 +68,12 @@ class VideoLogService
     /**
      * Get human readable file size
      */
-    private static function getFileSize($filePath)
+    private static function getFileSize(Media $media): string
     {
-        if (! $filePath) {
+        $bytes = $media->size;
+        if (! $bytes) {
             return 'Unknown size';
         }
-
-        $disk = Storage::disk('local');
-        $fullPath = $disk->exists($filePath)
-            ? $disk->path($filePath)
-            : storage_path('app/public/'.$filePath);
-
-        if (! file_exists($fullPath)) {
-            return 'File not found';
-        }
-
-        $bytes = filesize($fullPath);
 
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $bytes = max($bytes, 0);
@@ -101,7 +96,8 @@ class VideoLogService
         }
 
         $videoLog = VideoLog::find($link->video_id);
-        if (! $videoLog || ! $videoLog->file) {
+        $media = $videoLog?->videoMedia();
+        if (! $videoLog || ! $media) {
             abort(404, 'Video file not found.');
         }
 
@@ -112,11 +108,10 @@ class VideoLogService
             'user_agent' => $request->userAgent(),
         ]);
 
-        // Return the file for download
-        return response()->download(
-            storage_path('app/public/'.$videoLog->file),
-            $videoLog->title.'.mp4'
-        );
+        $extension = pathinfo($media->file_name, PATHINFO_EXTENSION) ?: 'mp4';
+        $downloadName = $videoLog->title.'.'.$extension;
+
+        return response()->download($media->getPath(), $downloadName);
     }
 
     public static function handleFileUploaded($state, $livewire)
@@ -134,23 +129,13 @@ class VideoLogService
         $extension = $uploaded->getClientOriginalExtension();
         $safeName = Str::slug($originalName).'.'.$extension;
 
-        // Store the file with its original/safe name in "videos/"
         $path = $uploaded->storeAs('', $safeName, 'local');
 
-        // Persist to DB immediately
         $record = method_exists($livewire, 'getRecord') ? $livewire->getRecord() : ($livewire->record ?? null);
         if ($record) {
-            if (filled($record->file)) {
-                Storage::disk('local')->delete($record->file);
-            }
-            $record->forceFill(['file' => $path])->save();
+            $record->replaceVideoFromPath($path, $safeName);
         }
 
         return $path;
-    }
-
-    public static function deleteFile($filePath)
-    {
-        Storage::disk('local')->delete($filePath);
     }
 }
