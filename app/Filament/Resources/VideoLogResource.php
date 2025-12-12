@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Broadcaster;
 use App\Filament\Resources\VideoLogResource\Pages;
+use App\Filament\Resources\VideoLogResource\RelationManagers\DownloadLinkRelationManager;
 use App\Forms\Components\ChunkedFileUpload;
 use App\Models\VideoLog;
 use App\Status;
@@ -129,7 +130,7 @@ class VideoLogResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            DownloadLinkRelationManager::class,
         ];
     }
 

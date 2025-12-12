@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Broadcaster;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\HasMedia;
@@ -33,6 +34,11 @@ class VideoLog extends Model implements HasMedia
     public function broadcaster()
     {
         return $this->belongsTo(Broadcaster::class, 'broadcaster');
+    }
+
+    public function downloadLinks(): HasMany
+    {
+        return $this->hasMany(DownloadLink::class);
     }
 
     public function registerMediaCollections(): void
