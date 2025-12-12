@@ -4,11 +4,11 @@ namespace App\Models;
 
 use App\Broadcaster;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Illuminate\Support\Facades\Log;
 
 class VideoLog extends Model implements HasMedia
 {
@@ -47,7 +47,7 @@ class VideoLog extends Model implements HasMedia
             return $this->media()->where('id', $this->media_id)->first();
         }
 
-        return $this->getFirstMedia('videos');
+        return $this->getFirstMedia('video-log-videos');
     }
 
     public function replaceVideoFromPath(string $path, string $originalName): ?Media
@@ -63,12 +63,12 @@ class VideoLog extends Model implements HasMedia
             return null;
         }
 
-        $this->clearMediaCollection('videos');
+        $this->clearMediaCollection('video-log-videos');
 
         try {
             $media = $this->addMedia($absolutePath)
                 ->usingFileName($originalName)
-                ->toMediaCollection('videos');
+                ->toMediaCollection('video-log-videos');
 
             // Ensure the media_id is saved and linked to the VideoLog
             $this->media_id = $media->id;

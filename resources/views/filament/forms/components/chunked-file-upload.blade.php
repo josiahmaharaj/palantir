@@ -2,6 +2,7 @@
     $statePath = $getStatePath();
     $fieldId = $getId();
     $chunkSizeLabel = number_format($getChunkSize() / (1024 * 1024), 1);
+    $downloadUrl = $getDownloadUrl();
 @endphp
 
 <div
@@ -51,6 +52,17 @@
                 <div class="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
                     <x-filament::icon icon="heroicon-o-document-text" class="h-5 w-5 text-primary-500" />
                     <span x-text="fileName || initialFile"></span>
+                    @if($downloadUrl)
+                        <a
+                            href="{{ $downloadUrl }}"
+                            target="_blank"
+                            download
+                            class="ml-2 text-primary-500 hover:text-primary-600 transition-colors"
+                            title="Download video"
+                        >
+                            <x-filament::icon icon="heroicon-o-arrow-down-tray" class="h-5 w-5" />
+                        </a>
+                    @endif
                 </div>
                 <span class="text-xs text-gray-600 dark:text-gray-300" x-text="`${progress}%`"></span>
             </div>
