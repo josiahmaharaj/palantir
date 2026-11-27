@@ -3,6 +3,7 @@
          x-data="{
             selectedFile: null,
             title: @entangle('title'),
+            email: @entangle('email'),
             dragOver: false,
             uploading: false,
             complete: @entangle('isComplete'),
@@ -16,6 +17,7 @@
             startTime: null,
             async startUpload() {
                 if (!this.selectedFile) return;
+                if (!(await $wire.validateRecipient())) return;
                 this.uploading = true;
                 this.progress = 0;
                 this.uploadedBytes = 0;
@@ -88,6 +90,7 @@
             resetAll() {
                 this.selectedFile = null;
                 this.title = '';
+                this.email = '';
                 this.uploading = false;
                 this.progress = 0;
                 this.uploadedBytes = 0;
@@ -167,11 +170,23 @@
                        class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:focus:border-blue-500">
             </div>
 
+            {{-- Recipient Email --}}
+            <div class="mb-6">
+                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Send download link to</label>
+                <input type="email"
+                       x-model="email"
+                       placeholder="name@example.com"
+                       class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 dark:focus:border-blue-500">
+                @error('email')
+                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
             {{-- Transfer Button --}}
             <button @click="startUpload()"
                     type="button"
-                    :disabled="!selectedFile"
-                    :class="{ 'opacity-50 cursor-not-allowed': !selectedFile }"
+                    :disabled="!selectedFile || !email"
+                    :class="{ 'opacity-50 cursor-not-allowed': !selectedFile || !email }"
                     class="w-full rounded-xl bg-blue-600 px-6 py-4 text-base font-semibold text-white transition-all hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/30">
                 Transfer
             </button>
@@ -221,7 +236,10 @@
             </div>
 
             <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">Upload Complete!</h3>
-            <p class="mb-6 text-sm text-gray-600 dark:text-gray-400">Your file has been successfully uploaded.</p>
+            <p class="mb-6 text-sm text-gray-600 dark:text-gray-400">Your file has been uploaded and a download link was emailed to <span class="font-medium" x-text="email"></span>.</p>
+            @error('email')
+                <p class="mb-6 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+            @enderror
 
             <button @click="resetAll()"
                     type="button"

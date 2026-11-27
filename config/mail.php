@@ -101,6 +101,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Download Notification Address
+    |--------------------------------------------------------------------------
+    |
+    | This address is emailed the first time a recipient opens a download link
+    | and the first time they download the file. Leave it empty to disable.
+    |
+    */
+
+    'notify_address' => env('MAIL_NOTIFY_ADDRESS'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Global "From" Address
     |--------------------------------------------------------------------------
     |

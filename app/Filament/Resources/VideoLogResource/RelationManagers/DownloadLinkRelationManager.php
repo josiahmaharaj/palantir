@@ -7,8 +7,6 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class DownloadLinkRelationManager extends RelationManager
 {
@@ -27,18 +25,19 @@ class DownloadLinkRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('id')
+            ->recordTitleAttribute('email')
             ->columns([
-                Tables\Columns\TextColumn::make('id'),
+                Tables\Columns\TextColumn::make('email')->searchable(),
+                Tables\Columns\TextColumn::make('status')->badge(),
+                Tables\Columns\TextColumn::make('expires_at')->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('opened_at')->dateTime()->placeholder('Not yet'),
+                Tables\Columns\TextColumn::make('downloaded_at')->dateTime()->placeholder('Not yet'),
+                Tables\Columns\TextColumn::make('number_clicks')->label('Downloads'),
             ])
             ->filters([
                 //
             ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make(),
-            ])
             ->actions([
-                Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

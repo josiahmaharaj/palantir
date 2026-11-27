@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Mail\VideoDownloadLink;
 use App\Models\Contact;
+use App\Models\DownloadLink;
 use App\Models\Link;
 use App\Models\VideoLog;
+use App\Models\VideoLogAuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -14,53 +16,70 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class VideoLogService
 {
-    public static function sendDownloadLink(VideoLog $videoLog)
+    /**
+     * Create a download link for each contact of the log's broadcaster and email it.
+     */
+    public static function sendDownloadLink(VideoLog $videoLog): bool
     {
-        // Generate a temporary encrypted link
-        $token = Str::random(64);
-        $expiresAt = now()->addMinute(4); // Link expires in 7 days
-
-        // Create the link record
-        $link = Link::create([
-            'video_id' => $videoLog->id,
-            'link' => $token,
-            'expired_at' => $expiresAt,
-            'shortcode' => Str::random(8),
-            'recipients' => 'contacts',
-        ]);
-
-        // Get all contacts
-        $contacts = Contact::where('broadcast', $videoLog->broadcaster)->get();
-
-        if ($contacts->isEmpty()) {
-            return false;
-        }
-
-        // Generate the download URL
-        $downloadUrl = route('video.download', ['token' => $token]);
-
-        // Get file size for email
         $media = $videoLog->videoMedia();
         if (! $media) {
             return false;
         }
 
-        $fileSize = self::getFileSize($media);
+        $videoLog->auditLogs()->create([
+            'event' => VideoLogAuditLog::VideoUploaded,
+            'message' => 'Video uploaded: '.$media->file_name.' ('.self::getFileSize($media).')',
+        ]);
 
-        // Send email to each contact
-        foreach ($contacts as $contact) {
-            Mail::to($contact->email)->queue(new VideoDownloadLink(
-                config('app.name'),
-                $videoLog,
-                $downloadUrl,
-                $expiresAt->format('F j, Y \a\t g:i A'),
-                $fileSize,
-                'User' // Contact model doesn't have name field
-            ));
+        $contacts = Contact::where('broadcast', $videoLog->broadcaster)->get();
+        if ($contacts->isEmpty()) {
+            $videoLog->auditLogs()->create([
+                'event' => VideoLogAuditLog::NoContacts,
+                'message' => 'No contacts found for '.$videoLog->broadcaster.'; no emails were sent.',
+            ]);
+
+            return false;
         }
 
-        // Update the link record with email sent timestamp
-        $link->update(['email_sent_at' => now()]);
+        $expiresAt = now()->addDays(7);
+        $fileSize = self::getFileSize($media);
+
+        foreach ($contacts as $contact) {
+            $downloadLink = DownloadLink::create([
+                'contact_id' => $contact->id,
+                'email' => $contact->email,
+                'title' => $videoLog->title,
+                'media_id' => $media->id,
+                'link' => Str::random(64),
+                'status' => 'sent',
+                'expires_at' => $expiresAt,
+            ]);
+
+            try {
+                Mail::to($contact->email)->send(new VideoDownloadLink(
+                    config('app.name'),
+                    $videoLog,
+                    $downloadLink->getDownloadUrl(),
+                    $expiresAt->format('F j, Y \\a\\t g:i A'),
+                    $fileSize,
+                    'User'
+                ));
+
+                $videoLog->auditLogs()->create([
+                    'event' => VideoLogAuditLog::EmailSent,
+                    'email' => $contact->email,
+                    'message' => 'Download link emailed; expires '.$expiresAt->format('M j, Y g:i A'),
+                ]);
+            } catch (\Throwable $e) {
+                report($e);
+                $downloadLink->update(['status' => 'error']);
+                $videoLog->auditLogs()->create([
+                    'event' => VideoLogAuditLog::EmailFailed,
+                    'email' => $contact->email,
+                    'message' => $e->getMessage(),
+                ]);
+            }
+        }
 
         return true;
     }

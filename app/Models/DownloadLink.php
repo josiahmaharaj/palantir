@@ -10,17 +10,28 @@ class DownloadLink extends Model
 {
     protected $fillable = [
         'contact_id',
+        'email',
         'title',
         'description',
         'media_id',
         'link',
         'status',
         'expires_at',
+        'opened_at',
         'downloaded_at',
         'ip_address',
         'user_agent',
         'number_clicks',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'expires_at' => 'datetime',
+            'opened_at' => 'datetime',
+            'downloaded_at' => 'datetime',
+        ];
+    }
 
     public function client(): BelongsTo
     {
@@ -34,6 +45,6 @@ class DownloadLink extends Model
 
     public function getDownloadUrl(): string
     {
-        return $this->link;
+        return route('download-link.show', ['token' => $this->link]);
     }
 }

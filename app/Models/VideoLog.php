@@ -38,7 +38,12 @@ class VideoLog extends Model implements HasMedia
 
     public function downloadLinks(): HasMany
     {
-        return $this->hasMany(DownloadLink::class);
+        return $this->hasMany(DownloadLink::class, 'media_id', 'media_id');
+    }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(VideoLogAuditLog::class);
     }
 
     public function registerMediaCollections(): void

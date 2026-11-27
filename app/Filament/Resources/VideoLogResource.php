@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Broadcaster;
 use App\Filament\Resources\VideoLogResource\Pages;
+use App\Filament\Resources\VideoLogResource\RelationManagers\AuditLogsRelationManager;
 use App\Filament\Resources\VideoLogResource\RelationManagers\DownloadLinkRelationManager;
 use App\Forms\Components\ChunkedFileUpload;
 use App\Models\VideoLog;
@@ -56,6 +57,7 @@ class VideoLogResource extends Resource
                     ->required(),
                 ChunkedFileUpload::make('upload_path')
                     ->label('Video')
+                    ->visibleOn('edit')
                     ->chunkSize(10 * 1024 * 1024)
                     ->reactive()
                     ->dehydrated(false)
@@ -130,6 +132,7 @@ class VideoLogResource extends Resource
     public static function getRelations(): array
     {
         return [
+            AuditLogsRelationManager::class,
             DownloadLinkRelationManager::class,
         ];
     }
