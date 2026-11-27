@@ -8,6 +8,8 @@ use App\Livewire\FileUploadPage;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Route;
 
+Route::passkeys();
+
 Route::post('/api/upload/chunk', ChunkUploadController::class)
     ->withoutMiddleware([ThrottleRequests::class])
     ->middleware('auth')
