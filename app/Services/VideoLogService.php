@@ -18,12 +18,16 @@ class VideoLogService
 {
     /**
      * Create a download link for each contact of the log's broadcaster and email it.
+     *
+     * @return array{sent: int, failed: int}
      */
-    public static function sendDownloadLink(VideoLog $videoLog): bool
+    public static function sendDownloadLink(VideoLog $videoLog): array
     {
         $media = $videoLog->videoMedia();
+        $result = ['sent' => 0, 'failed' => 0];
+
         if (! $media) {
-            return false;
+            return $result;
         }
 
         $videoLog->auditLogs()->create([
@@ -38,7 +42,7 @@ class VideoLogService
                 'message' => 'No contacts found for '.$videoLog->broadcaster.'; no emails were sent.',
             ]);
 
-            return false;
+            return $result;
         }
 
         $expiresAt = now()->addDays(7);
@@ -70,6 +74,7 @@ class VideoLogService
                     'email' => $contact->email,
                     'message' => 'Download link emailed; expires '.$expiresAt->format('M j, Y g:i A'),
                 ]);
+                $result['sent']++;
             } catch (\Throwable $e) {
                 report($e);
                 $downloadLink->update(['status' => 'error']);
@@ -78,10 +83,11 @@ class VideoLogService
                     'email' => $contact->email,
                     'message' => $e->getMessage(),
                 ]);
+                $result['failed']++;
             }
         }
 
-        return true;
+        return $result;
     }
 
     /**

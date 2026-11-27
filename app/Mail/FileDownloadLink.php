@@ -21,7 +21,7 @@ class FileDownloadLink extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Download link - '.$this->downloadLink->title,
+            subject: 'Your file is ready: '.$this->downloadLink->title,
         );
     }
 
@@ -29,8 +29,8 @@ class FileDownloadLink extends Mailable
     {
         return new Content(
             view: 'emails.file-download-link',
+            text: 'emails.text.file-download-link',
             with: [
-                'brandName' => config('app.name'),
                 'title' => $this->downloadLink->title,
                 'downloadUrl' => $this->downloadLink->getDownloadUrl(),
                 'expiresAt' => $this->downloadLink->expires_at->format('F j, Y \a\t g:i A'),

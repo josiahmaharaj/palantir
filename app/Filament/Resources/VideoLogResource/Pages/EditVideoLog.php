@@ -8,6 +8,7 @@ use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class EditVideoLog extends EditRecord
 {
@@ -29,12 +30,7 @@ class EditVideoLog extends EditRecord
 
         if (! $this->record) {
             Log::warning('EditVideoLog::handleStreamingUploadCompleted - No record');
-
-            Notification::make()
-                ->title('Upload failed')
-                ->body('No record found.')
-                ->danger()
-                ->send();
+            $this->notifyUploadFailed('The video log could not be found. Reload the page and try again.');
 
             return;
         }
@@ -48,12 +44,7 @@ class EditVideoLog extends EditRecord
                 'file_path' => $filePath,
                 'type' => gettype($filePath),
             ]);
-
-            Notification::make()
-                ->title('Upload failed')
-                ->body('Invalid file path received.')
-                ->danger()
-                ->send();
+            $this->notifyUploadFailed('The uploaded file did not arrive. Upload it again.');
 
             return;
         }
@@ -70,36 +61,65 @@ class EditVideoLog extends EditRecord
         $this->record->refresh();
 
         try {
-            $media = $this->record->replaceVideoFromPath($filePath, $originalName);
+            if (! $this->record->replaceVideoFromPath($filePath, $originalName)) {
+                $this->notifyUploadFailed('The video could not be saved. Upload it again.');
 
-            if ($media) {
-                // Refresh again to get the updated media_id
-                $this->record->refresh();
-
-                VideoLogService::sendDownloadLink($this->record);
-
-                Notification::make()
-                    ->title('Upload complete')
-                    ->body('The video file has been updated.')
-                    ->success()
-                    ->send();
-
-                // Refresh form data to show the updated file name
-                $this->refreshFormData();
-            } else {
-                Notification::make()
-                    ->title('Upload failed')
-                    ->body('Failed to save the video file to media library. File may not exist at: '.$filePath)
-                    ->danger()
-                    ->send();
+                return;
             }
+
+            // Refresh again to get the updated media_id
+            $this->record->refresh();
+
+            $this->notifyDelivery(VideoLogService::sendDownloadLink($this->record));
+
+            // Refresh form data to show the updated file name
+            $this->refreshFormData();
         } catch (\Throwable $e) {
-            Notification::make()
-                ->title('Upload error')
-                ->body('Error saving media: '.$e->getMessage())
-                ->danger()
-                ->send();
+            report($e);
+            $this->notifyUploadFailed('Something went wrong while saving the video. Upload it again.');
         }
+    }
+
+    /**
+     * @param  array{sent: int, failed: int}  $result
+     */
+    private function notifyDelivery(array $result): void
+    {
+        ['sent' => $sent, 'failed' => $failed] = $result;
+
+        $notification = Notification::make();
+
+        if ($failed > 0) {
+            $notification
+                ->title("Video saved, {$failed} ".Str::plural('email', $failed).' failed')
+                ->body("{$sent} sent. See the audit log for what went wrong.")
+                ->danger()
+                ->persistent();
+        } elseif ($sent === 0) {
+            $notification
+                ->title('Video saved, nothing sent')
+                ->body("{$this->record->broadcaster} has no contacts. Add one, then upload the video again.")
+                ->warning()
+                ->persistent();
+        } else {
+            $notification
+                ->title("Video sent to {$sent} ".Str::plural('contact', $sent))
+                ->body('Each download link works for 7 days. Opens and downloads appear in the audit log.')
+                ->icon('heroicon-o-paper-airplane')
+                ->success();
+        }
+
+        $notification->send();
+    }
+
+    private function notifyUploadFailed(string $reason): void
+    {
+        Notification::make()
+            ->title('Upload failed')
+            ->body($reason)
+            ->danger()
+            ->persistent()
+            ->send();
     }
 
     protected function getHeaderActions(): array

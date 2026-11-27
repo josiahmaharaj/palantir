@@ -2,7 +2,9 @@
 
 namespace App\Mail;
 
+use App\Filament\Resources\VideoLogResource;
 use App\Models\DownloadLink;
+use App\Models\VideoLog;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -31,11 +33,23 @@ class DownloadLinkActivity extends Mailable
 
     public function content(): Content
     {
+        $videoLog = $this->downloadLink->media?->model;
+        $videoLog = $videoLog instanceof VideoLog ? $videoLog : null;
+
         return new Content(
             view: 'emails.download-link-activity',
+            text: 'emails.text.download-link-activity',
             with: [
+                'heading' => $this->activity === self::Opened ? 'Link opened' : 'File downloaded',
                 'summary' => $this->summary(),
-                'happenedAt' => now()->format('F j, Y \a\t g:i A'),
+                'details' => array_filter([
+                    'Recipient' => $this->downloadLink->email,
+                    'Title' => $this->downloadLink->title,
+                    'Broadcaster' => $videoLog?->broadcaster,
+                    'Reference' => $videoLog?->log_id,
+                    'When' => now()->format('F j, Y \a\t g:i A'),
+                ]),
+                'logUrl' => $videoLog ? VideoLogResource::getUrl('edit', ['record' => $videoLog]) : null,
             ],
         );
     }

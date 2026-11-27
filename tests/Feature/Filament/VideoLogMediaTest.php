@@ -149,3 +149,52 @@ it('records opens and downloads of a video link in the audit log', function () {
         ->toBe([VideoLogAuditLog::LinkOpened, VideoLogAuditLog::FileDownloaded])
         ->and($entries->pluck('email')->unique()->all())->toBe(['mtm@example.com']);
 });
+
+it('shows the video details on the download page and in the email', function () {
+    Storage::disk('local')->put('videos/sample.mp4', 'demo');
+    Contact::create(['email' => 'mtm@example.com', 'broadcast' => 'MTM']);
+    $videoLog = makeVideoLog();
+    $videoLog->replaceVideoFromPath('videos/sample.mp4', 'sample.mp4');
+    \App\Services\VideoLogService::sendDownloadLink($videoLog);
+    $url = $videoLog->downloadLinks()->sole()->getDownloadUrl();
+
+    $this->get($url)->assertSuccessful()->assertSeeInOrder(['Test video', 'Broadcaster', 'MTM', 'Reference', '123']);
+
+    Mail::assertSent(VideoDownloadLink::class, function ($mail) use ($url) {
+        $mail->assertSeeInHtml('Test video')
+            ->assertSeeInHtml($url)
+            ->assertSeeInText($url)
+            ->assertDontSeeInHtml('Hi User');
+
+        return true;
+    });
+});
+
+it('tells the uploader how many contacts were emailed', function (array $emails, string $title) {
+    Storage::disk('local')->put('videos/sample.mp4', 'demo');
+    foreach ($emails as $email) {
+        Contact::create(['email' => $email, 'broadcast' => 'MTM']);
+    }
+    $videoLog = makeVideoLog();
+
+    Livewire::actingAs(User::factory()->create())
+        ->test(EditVideoLog::class, ['record' => $videoLog->getKey()])
+        ->call('handleStreamingUploadCompleted', 'videos/sample.mp4')
+        ->assertNotified($title);
+})->with([
+    'no contacts' => [[], 'Video saved, nothing sent'],
+    'one contact' => [['a@example.com'], 'Video sent to 1 contact'],
+    'two contacts' => [['a@example.com', 'b@example.com'], 'Video sent to 2 contacts'],
+]);
+
+it('warns the uploader when an email fails', function () {
+    Storage::disk('local')->put('videos/sample.mp4', 'demo');
+    Contact::create(['email' => 'mtm@example.com', 'broadcast' => 'MTM']);
+    $videoLog = makeVideoLog();
+    Mail::shouldReceive('to->send')->andThrow(new RuntimeException('smtp down'));
+
+    Livewire::actingAs(User::factory()->create())
+        ->test(EditVideoLog::class, ['record' => $videoLog->getKey()])
+        ->call('handleStreamingUploadCompleted', 'videos/sample.mp4')
+        ->assertNotified('Video saved, 1 email failed');
+});

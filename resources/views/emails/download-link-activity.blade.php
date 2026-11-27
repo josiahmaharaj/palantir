@@ -1,12 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <title>{{ $summary }}</title>
-</head>
-<body style="margin:0; padding:24px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif; color:#0f172a;">
-  <p style="margin:0 0 8px; font-size:16px; font-weight:600;">{{ $summary }}</p>
-  <p style="margin:0; font-size:14px; color:#64748b;">{{ $happenedAt }}</p>
-</body>
-</html>
+<x-emails.layout :heading="$heading" :preheader="$summary">
+    <p style="margin:0 0 24px; font-size:15px; line-height:1.6; color:#3f3f46;">{{ $summary }}.</p>
+
+    <x-emails.details :rows="$details" />
+
+    @if ($logUrl)
+        <x-emails.button :url="$logUrl">View video log</x-emails.button>
+    @endif
+</x-emails.layout>

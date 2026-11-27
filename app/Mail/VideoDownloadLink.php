@@ -25,7 +25,7 @@ class VideoDownloadLink extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Video Download Link - '.$this->videoLog->title,
+            subject: 'Your video is ready: '.$this->videoLog->title,
         );
     }
 
@@ -33,6 +33,7 @@ class VideoDownloadLink extends Mailable
     {
         return new Content(
             view: 'emails.video-download-link',
+            text: 'emails.text.video-download-link',
             with: [
                 'brandName' => $this->brandName,
                 'videoLog' => $this->videoLog,

@@ -168,3 +168,40 @@ it('returns not found for expired or unknown tokens', function () {
     }
     expect($link->refresh()->opened_at)->toBeNull();
 });
+
+it('explains an expired link instead of showing a bare error page', function () {
+    $link = createDownloadLink(['expires_at' => now()->subMinute()]);
+
+    $this->get(route('download-link.show', $link->link))
+        ->assertNotFound()
+        ->assertSee('This link is no longer available');
+});
+
+it('renders the emails in the shared layout without remote images', function () {
+    $link = createDownloadLink(['title' => 'Daybreak']);
+
+    foreach ([new FileDownloadLink($link, '2 GB'), new DownloadLinkActivity($link, DownloadLinkActivity::Opened)] as $mail) {
+        $mail->assertSeeInHtml('Daybreak')
+            ->assertSeeInHtml('#f59e0b', false)
+            ->assertDontSeeInHtml('<img', false)
+            ->assertSeeInText('Daybreak');
+    }
+
+    (new FileDownloadLink($link, '2 GB'))->assertSeeInText($link->getDownloadUrl());
+});
+
+it('shows the support address in the email footer', function () {
+    $link = createDownloadLink();
+    config(['mail.support_address' => 'help@example.com']);
+
+    (new FileDownloadLink($link, '2 GB'))
+        ->assertSeeInHtml('Need help?')
+        ->assertSeeInHtml('help@example.com');
+});
+
+it('hides the help line when no support address is set', function () {
+    $link = createDownloadLink();
+    config(['mail.support_address' => null]);
+
+    (new FileDownloadLink($link, '2 GB'))->assertDontSeeInHtml('Need help?');
+});

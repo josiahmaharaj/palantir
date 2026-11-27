@@ -6,9 +6,11 @@ use App\Mail\DownloadLinkActivity;
 use App\Models\DownloadLink;
 use App\Models\VideoLog;
 use App\Models\VideoLogAuditLog;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Number;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -26,8 +28,25 @@ class DownloadLinkController extends Controller
         return view('download-links.show', [
             'downloadLink' => $downloadLink,
             'fileName' => $media->file_name,
-            'fileSize' => Number::fileSize($media->size),
+            'format' => Str::upper(pathinfo($media->file_name, PATHINFO_EXTENSION) ?: 'File'),
+            'details' => $this->details($media),
         ]);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function details(Media $media): array
+    {
+        $videoLog = $media->model;
+
+        $videoDetails = $videoLog instanceof VideoLog ? [
+            'Broadcaster' => (string) $videoLog->broadcaster,
+            'Show date' => $videoLog->due_date->format('F j, Y'),
+            'Reference' => (string) $videoLog->log_id,
+        ] : [];
+
+        return [...$videoDetails, 'File size' => Number::fileSize($media->size, precision: 1)];
     }
 
     public function download(Request $request, string $token): BinaryFileResponse
@@ -63,7 +82,7 @@ class DownloadLinkController extends Controller
         $media = $downloadLink?->media;
 
         if (! $media || ! file_exists($media->getPath())) {
-            abort(404, 'Download link has expired or is invalid.');
+            throw new HttpResponseException(response()->view('download-links.unavailable', status: 404));
         }
 
         return [$downloadLink, $media];
