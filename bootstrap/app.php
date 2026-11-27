@@ -11,7 +11,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->redirectGuestsTo(fn (): string => route('filament.admin.auth.login'));
+
+        $middleware->validateCsrfTokens(except: [
+            'api/upload/chunk',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -2,13 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\VideoDownloadLink;
-use App\Models\Contact;
 use App\Models\Link;
 use App\Models\VideoLog;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 
 class VideoLogController extends Controller
 {
@@ -62,7 +58,8 @@ class VideoLogController extends Controller
         }
 
         $videoLog = VideoLog::find($link->video_id);
-        if (! $videoLog || ! $videoLog->file) {
+        $media = $videoLog?->videoMedia();
+        if (! $videoLog || ! $media) {
             abort(404, 'Video file not found.');
         }
 
@@ -73,10 +70,10 @@ class VideoLogController extends Controller
             'user_agent' => $request->userAgent(),
         ]);
 
-        // Return the file for download
-        return response()->download(
-            storage_path('app/public/'.$videoLog->file),
-            $videoLog->file,
-        );
+        $path = $media->getPath();
+
+        $extension = pathinfo($media->file_name, PATHINFO_EXTENSION) ?: 'mp4';
+
+        return response()->download($path, $videoLog->title.'.'.$extension);
     }
 }
