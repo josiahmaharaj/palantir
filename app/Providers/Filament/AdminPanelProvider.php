@@ -29,7 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('/')
-            // ->login()
+            ->login()
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -58,7 +58,7 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([
-                // Authenticate::class,
+                Authenticate::class,
             ])->plugin(
                 FilamentFullCalendarPlugin::make()
                     ->selectable(true)

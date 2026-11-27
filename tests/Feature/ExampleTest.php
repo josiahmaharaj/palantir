@@ -1,7 +1,9 @@
 <?php
 
-it('returns a successful response', function () {
-    $response = $this->get('/');
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
-    $response->assertStatus(200);
+uses(RefreshDatabase::class);
+
+it('redirects a guest on the home page to login', function () {
+    $this->get('/')->assertRedirect(route('filament.admin.auth.login'));
 });

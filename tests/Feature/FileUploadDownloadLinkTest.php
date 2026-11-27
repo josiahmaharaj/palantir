@@ -16,6 +16,7 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     Storage::fake('local');
     Storage::fake('public');
+    Storage::fake('media');
     Storage::disk('local')->put('videos/sample.mp4', 'demo-video');
 });
 

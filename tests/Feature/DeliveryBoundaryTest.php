@@ -34,6 +34,7 @@ foreach ([
 it('announces the first open and first download of a link once each', function () {
     Storage::fake('local');
     Storage::fake('public');
+    Storage::fake('media');
     Storage::disk('local')->put('videos/sample.mp4', 'demo');
     $media = FileUpload::create(['title' => 'x', 'original_filename' => 'sample.mp4', 'file_size' => 4, 'mime_type' => 'video/mp4', 'status' => 'completed'])
         ->addMedia(Storage::disk('local')->path('videos/sample.mp4'))

@@ -19,6 +19,6 @@ class ChunkedFileUpload extends StreamingFileUpload
 
         $media = $record->videoMedia();
 
-        return $media?->getUrl();
+        return $media ? route('video-logs.video', $record) : null;
     }
 }
