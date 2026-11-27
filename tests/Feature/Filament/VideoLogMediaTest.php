@@ -29,6 +29,7 @@ function makeVideoLog(): VideoLog
 beforeEach(function () {
     Storage::fake('local');
     Storage::fake('public');
+    Storage::fake('media');
     Mail::fake();
 });
 
@@ -197,4 +198,17 @@ it('warns the uploader when an email fails', function () {
         ->test(EditVideoLog::class, ['record' => $videoLog->getKey()])
         ->call('handleStreamingUploadCompleted', 'videos/sample.mp4')
         ->assertNotified('Video saved, 1 email failed');
+});
+
+it('shows the new file and no failure message after a successful upload', function () {
+    Storage::disk('local')->put('videos/sample.mp4', 'demo');
+    Contact::create(['email' => 'mtm@example.com', 'broadcast' => 'MTM']);
+    $videoLog = makeVideoLog();
+
+    Livewire::actingAs(User::factory()->create())
+        ->test(EditVideoLog::class, ['record' => $videoLog->getKey()])
+        ->call('handleStreamingUploadCompleted', 'videos/sample.mp4')
+        ->assertNotified('Video sent to 1 contact')
+        ->assertNotNotified('Upload failed')
+        ->assertSet('data.upload_path', 'sample.mp4');
 });

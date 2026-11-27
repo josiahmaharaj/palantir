@@ -73,7 +73,7 @@ class EditVideoLog extends EditRecord
             $this->notifyDelivery(VideoLogService::sendDownloadLink($this->record));
 
             // Refresh form data to show the updated file name
-            $this->refreshFormData();
+            $this->refreshFormData(['media_id']);
         } catch (\Throwable $e) {
             report($e);
             $this->notifyUploadFailed('Something went wrong while saving the video. Upload it again.');
