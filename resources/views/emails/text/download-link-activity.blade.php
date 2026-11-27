@@ -3,8 +3,8 @@
 @foreach ($details as $label => $value)
 {{ $label }}: {!! $value !!}
 @endforeach
-@if ($logUrl)
+@if ($recordUrl)
 
-View video log:
-{!! $logUrl !!}
+View record:
+{!! $recordUrl !!}
 @endif

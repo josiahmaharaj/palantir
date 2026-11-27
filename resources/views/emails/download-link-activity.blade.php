@@ -3,7 +3,7 @@
 
     <x-emails.details :rows="$details" />
 
-    @if ($logUrl)
-        <x-emails.button :url="$logUrl">View video log</x-emails.button>
+    @if ($recordUrl)
+        <x-emails.button :url="$recordUrl">View record</x-emails.button>
     @endif
 </x-emails.layout>

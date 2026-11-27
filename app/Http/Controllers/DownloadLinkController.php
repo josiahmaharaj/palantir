@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\DownloadLinkActivity;
+use App\Contracts\Deliverable;
+use App\Events\DownloadLinkOpened;
+use App\Events\FileDownloaded;
 use App\Models\DownloadLink;
-use App\Models\VideoLog;
-use App\Models\VideoLogAuditLog;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -22,7 +21,7 @@ class DownloadLinkController extends Controller
         [$downloadLink, $media] = $this->resolve($token);
 
         if ($request->isMethod('GET') && $this->recordFirst($downloadLink, 'opened_at')) {
-            $this->announce($downloadLink, $media, DownloadLinkActivity::Opened);
+            DownloadLinkOpened::dispatch($downloadLink);
         }
 
         return view('download-links.show', [
@@ -38,15 +37,12 @@ class DownloadLinkController extends Controller
      */
     private function details(Media $media): array
     {
-        $videoLog = $media->model;
+        $owner = $media->model;
 
-        $videoDetails = $videoLog instanceof VideoLog ? [
-            'Broadcaster' => (string) $videoLog->broadcaster,
-            'Show date' => $videoLog->due_date->format('F j, Y'),
-            'Reference' => (string) $videoLog->log_id,
-        ] : [];
-
-        return [...$videoDetails, 'File size' => Number::fileSize($media->size, precision: 1)];
+        return [
+            ...($owner instanceof Deliverable ? $owner->deliveryDetails() : []),
+            'File size' => Number::fileSize($media->size, precision: 1),
+        ];
     }
 
     public function download(Request $request, string $token): BinaryFileResponse
@@ -63,7 +59,7 @@ class DownloadLinkController extends Controller
         $downloadLink->increment('number_clicks');
 
         if ($isFirstDownload) {
-            $this->announce($downloadLink, $media, DownloadLinkActivity::Downloaded);
+            FileDownloaded::dispatch($downloadLink);
         }
 
         return response()->download($media->getPath(), $media->file_name);
@@ -97,30 +93,5 @@ class DownloadLinkController extends Controller
             ->whereKey($downloadLink->getKey())
             ->whereNull($column)
             ->update([$column => now()]) === 1;
-    }
-
-    private function announce(DownloadLink $downloadLink, Media $media, string $activity): void
-    {
-        $isOpen = $activity === DownloadLinkActivity::Opened;
-
-        if ($media->model instanceof VideoLog) {
-            $media->model->auditLogs()->create([
-                'event' => $isOpen ? VideoLogAuditLog::LinkOpened : VideoLogAuditLog::FileDownloaded,
-                'email' => $downloadLink->email,
-                'message' => $isOpen ? 'Download link opened' : 'File downloaded',
-            ]);
-        }
-
-        $notifyAddress = config('mail.notify_address');
-
-        if (! $notifyAddress) {
-            return;
-        }
-
-        try {
-            Mail::to($notifyAddress)->send(new DownloadLinkActivity($downloadLink, $activity));
-        } catch (\Throwable $e) {
-            report($e);
-        }
     }
 }

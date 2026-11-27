@@ -4,12 +4,10 @@ namespace App\Services;
 
 use App\Mail\VideoDownloadLink;
 use App\Models\Contact;
-use App\Models\DownloadLink;
 use App\Models\Link;
 use App\Models\VideoLog;
 use App\Models\VideoLogAuditLog;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -45,22 +43,15 @@ class VideoLogService
             return $result;
         }
 
-        $expiresAt = now()->addDays(7);
         $fileSize = self::getFileSize($media);
+        $downloadLinks = app(DownloadLinkService::class);
 
         foreach ($contacts as $contact) {
-            $downloadLink = DownloadLink::create([
-                'contact_id' => $contact->id,
-                'email' => $contact->email,
-                'title' => $videoLog->title,
-                'media_id' => $media->id,
-                'link' => Str::random(64),
-                'status' => 'sent',
-                'expires_at' => $expiresAt,
-            ]);
+            $downloadLink = $downloadLinks->create($media, $contact->email, $videoLog->title, $contact->id);
+            $expiresAt = $downloadLink->expires_at;
 
             try {
-                Mail::to($contact->email)->send(new VideoDownloadLink(
+                $downloadLinks->send($downloadLink, new VideoDownloadLink(
                     config('app.name'),
                     $videoLog,
                     $downloadLink->getDownloadUrl(),
@@ -77,7 +68,6 @@ class VideoLogService
                 $result['sent']++;
             } catch (\Throwable $e) {
                 report($e);
-                $downloadLink->update(['status' => 'error']);
                 $videoLog->auditLogs()->create([
                     'event' => VideoLogAuditLog::EmailFailed,
                     'email' => $contact->email,

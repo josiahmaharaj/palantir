@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Broadcaster;
+use App\Contracts\Deliverable;
+use App\Filament\Resources\VideoLogResource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Log;
@@ -11,7 +13,7 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class VideoLog extends Model implements HasMedia
+class VideoLog extends Model implements Deliverable, HasMedia
 {
     use InteractsWithMedia;
 
@@ -44,6 +46,20 @@ class VideoLog extends Model implements HasMedia
     public function auditLogs(): HasMany
     {
         return $this->hasMany(VideoLogAuditLog::class);
+    }
+
+    public function deliveryDetails(): array
+    {
+        return [
+            'Broadcaster' => (string) $this->broadcaster,
+            'Show date' => $this->due_date->format('F j, Y'),
+            'Reference' => (string) $this->log_id,
+        ];
+    }
+
+    public function deliveryAdminUrl(): string
+    {
+        return VideoLogResource::getUrl('edit', ['record' => $this]);
     }
 
     public function registerMediaCollections(): void
