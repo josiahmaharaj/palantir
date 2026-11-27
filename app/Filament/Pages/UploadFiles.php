@@ -8,13 +8,13 @@ use Illuminate\Support\Facades\Storage;
 
 class UploadFiles extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-arrow-up-tray';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-up-tray';
 
     protected static ?string $navigationLabel = 'Chunk Upload';
 
     protected static ?string $title = 'Chunk Upload';
 
-    protected static string $view = 'filament.pages.upload-files';
+    protected string $view = 'filament.pages.upload-files';
 
     public string $uploadTitle = '';
 

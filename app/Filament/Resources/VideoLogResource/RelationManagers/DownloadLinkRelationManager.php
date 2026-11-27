@@ -2,21 +2,24 @@
 
 namespace App\Filament\Resources\VideoLogResource\RelationManagers;
 
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class DownloadLinkRelationManager extends RelationManager
 {
     protected static string $relationship = 'downloadLinks';
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('id')
+        return $schema
+            ->components([
+                TextInput::make('id')
                     ->required()
                     ->maxLength(255),
             ]);
@@ -27,22 +30,22 @@ class DownloadLinkRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('email')
             ->columns([
-                Tables\Columns\TextColumn::make('email')->searchable(),
-                Tables\Columns\TextColumn::make('status')->badge(),
-                Tables\Columns\TextColumn::make('expires_at')->dateTime()->sortable(),
-                Tables\Columns\TextColumn::make('opened_at')->dateTime()->placeholder('Not yet'),
-                Tables\Columns\TextColumn::make('downloaded_at')->dateTime()->placeholder('Not yet'),
-                Tables\Columns\TextColumn::make('number_clicks')->label('Downloads'),
+                TextColumn::make('email')->searchable(),
+                TextColumn::make('status')->badge(),
+                TextColumn::make('expires_at')->dateTime()->sortable(),
+                TextColumn::make('opened_at')->dateTime()->placeholder('Not yet'),
+                TextColumn::make('downloaded_at')->dateTime()->placeholder('Not yet'),
+                TextColumn::make('number_clicks')->label('Downloads'),
             ])
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\DeleteAction::make(),
+            ->recordActions([
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

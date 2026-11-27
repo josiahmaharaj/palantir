@@ -3,30 +3,38 @@
 namespace App\Filament\Resources;
 
 use App\Broadcaster;
-use App\Filament\Resources\VideoLogResource\Pages;
+use App\Filament\Resources\VideoLogResource\Pages\CreateVideoLog;
+use App\Filament\Resources\VideoLogResource\Pages\EditVideoLog;
+use App\Filament\Resources\VideoLogResource\Pages\ListVideoLogs;
 use App\Filament\Resources\VideoLogResource\RelationManagers\AuditLogsRelationManager;
 use App\Filament\Resources\VideoLogResource\RelationManagers\DownloadLinkRelationManager;
 use App\Forms\Components\ChunkedFileUpload;
 use App\Models\VideoLog;
 use App\Status;
 use Carbon\Carbon;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class VideoLogResource extends Resource
 {
     protected static ?string $model = VideoLog::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-film';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-film';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('log_id')
+        return $schema
+            ->components([
+                TextInput::make('log_id')
                     ->numeric()
                     ->required()
                     ->live(onBlur: true)
@@ -40,10 +48,10 @@ class VideoLogResource extends Resource
                             $set('title', $state.'_DaybreakAssembly_'.$formattedDate);
                         }
                     }),
-                Forms\Components\TextInput::make('title')
+                TextInput::make('title')
                     ->live()
                     ->required(),
-                Forms\Components\Select::make('broadcaster')
+                Select::make('broadcaster')
                     ->options(function () {
                         $options = [];
                         foreach (Broadcaster::cases() as $case) {
@@ -53,7 +61,7 @@ class VideoLogResource extends Resource
                         return $options;
                     })
                     ->required(),
-                Forms\Components\DatePicker::make('due_date')
+                DatePicker::make('due_date')
                     ->required(),
                 ChunkedFileUpload::make('upload_path')
                     ->label('Video')
@@ -62,7 +70,7 @@ class VideoLogResource extends Resource
                     ->reactive()
                     ->dehydrated(false)
                     ->formatStateUsing(fn ($state, ?VideoLog $record) => $record?->videoMedia()?->file_name),
-                Forms\Components\Select::make('status')
+                Select::make('status')
                     ->options(function () {
                         $options = [];
                         foreach (Status::cases() as $case) {
@@ -72,7 +80,7 @@ class VideoLogResource extends Resource
                         return $options;
                     })
                     ->required(),
-                Forms\Components\TextInput::make('related_log_id')
+                TextInput::make('related_log_id')
                     ->numeric(),
             ]);
     }
@@ -85,46 +93,46 @@ class VideoLogResource extends Resource
 
             ])
             ->columns([
-                Tables\Columns\TextColumn::make('log_id')
+                TextColumn::make('log_id')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('broadcaster')
+                TextColumn::make('broadcaster')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('due_date')
+                TextColumn::make('due_date')
                     ->date()
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('related_log_id')
+                TextColumn::make('related_log_id')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
+                TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('broadcaster')
+                SelectFilter::make('broadcaster')
                     ->options([
                         'MTM' => 'MTM',
                         'TV6' => 'TV6',
                     ]),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -140,9 +148,9 @@ class VideoLogResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListVideoLogs::route('/'),
-            'create' => Pages\CreateVideoLog::route('/create'),
-            'edit' => Pages\EditVideoLog::route('/{record}/edit'),
+            'index' => ListVideoLogs::route('/'),
+            'create' => CreateVideoLog::route('/create'),
+            'edit' => EditVideoLog::route('/{record}/edit'),
         ];
     }
 }

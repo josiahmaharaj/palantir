@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Throwable;
 
 class VideoLog extends Model implements Deliverable, HasMedia
 {
@@ -111,7 +112,7 @@ class VideoLog extends Model implements Deliverable, HasMedia
             }
 
             return $media;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('VideoLog::replaceVideoFromPath - Exception', [
                 'video_log_id' => $this->id,
                 'path' => $path,

@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Throwable;
 
 class VideoLogService
 {
@@ -66,7 +67,7 @@ class VideoLogService
                     'message' => 'Download link emailed; expires '.$expiresAt->format('M j, Y g:i A'),
                 ]);
                 $result['sent']++;
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 report($e);
                 $videoLog->auditLogs()->create([
                     'event' => VideoLogAuditLog::EmailFailed,

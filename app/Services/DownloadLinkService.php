@@ -7,6 +7,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Throwable;
 
 class DownloadLinkService
 {
@@ -28,13 +29,13 @@ class DownloadLinkService
     /**
      * Email the link to its recipient, marking it as errored if the mail cannot be sent.
      *
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function send(DownloadLink $downloadLink, Mailable $mail): void
     {
         try {
             Mail::to($downloadLink->email)->send($mail);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $downloadLink->update(['status' => 'error']);
 
             throw $e;

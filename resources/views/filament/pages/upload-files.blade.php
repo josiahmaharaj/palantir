@@ -133,7 +133,7 @@
                 </x-filament::badge>
             </div>
 
-            <x-filament::grid class="mt-6 gap-6" default="1" md="2">
+            <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div class="space-y-4">
                     <div
                         @dragover.prevent="dragOver = true"
@@ -249,7 +249,7 @@
                         </x-filament::button>
                     </div>
                 </div>
-            </x-filament::grid>
+            </div>
         </x-filament::section>
     </div>
 </x-filament-panels::page>

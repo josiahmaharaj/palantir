@@ -26,7 +26,7 @@
             </p>
         </div>
         <x-filament::badge
-            :color="\"primary\""
+            color="primary"
             x-text="progress >= 100 ? 'Ready' : (file ? 'Selected' : 'Waiting')"
         />
     </div>

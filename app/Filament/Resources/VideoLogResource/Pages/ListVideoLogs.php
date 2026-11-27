@@ -4,7 +4,7 @@ namespace App\Filament\Resources\VideoLogResource\Pages;
 
 use App\Filament\Resources\VideoLogResource;
 use App\Filament\Resources\VideoLogResource\Widgets\CalendarWidget;
-use Filament\Actions;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListVideoLogs extends ListRecords
@@ -14,7 +14,7 @@ class ListVideoLogs extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make(),
         ];
     }
 

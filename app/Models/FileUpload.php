@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\FileUploadFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class FileUpload extends Model implements HasMedia
 {
-    /** @use HasFactory<\Database\Factories\FileUploadFactory> */
+    /** @use HasFactory<FileUploadFactory> */
     use HasFactory;
 
     use InteractsWithMedia;

@@ -4,7 +4,7 @@ namespace App\Filament\Resources\VideoLogResource\RelationManagers;
 
 use App\Models\VideoLogAuditLog;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class AuditLogsRelationManager extends RelationManager
@@ -19,11 +19,11 @@ class AuditLogsRelationManager extends RelationManager
             ->recordTitleAttribute('event')
             ->defaultSort('created_at', 'desc')
             ->columns([
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label('When')
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('event')
+                TextColumn::make('event')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         VideoLogAuditLog::VideoUploaded => 'Video uploaded',
@@ -41,8 +41,8 @@ class AuditLogsRelationManager extends RelationManager
                         VideoLogAuditLog::NoContacts => 'warning',
                         default => 'gray',
                     }),
-                Tables\Columns\TextColumn::make('email')->placeholder('-'),
-                Tables\Columns\TextColumn::make('message')->wrap(),
+                TextColumn::make('email')->placeholder('-'),
+                TextColumn::make('message')->wrap(),
             ]);
     }
 }

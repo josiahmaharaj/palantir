@@ -6,6 +6,7 @@ use App\Events\DownloadLinkOpened;
 use App\Events\FileDownloaded;
 use App\Mail\DownloadLinkActivity;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 class SendDownloadActivityAlert
 {
@@ -21,7 +22,7 @@ class SendDownloadActivityAlert
 
         try {
             Mail::to($notifyAddress)->send(new DownloadLinkActivity($event->downloadLink, $activity));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
         }
     }

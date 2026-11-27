@@ -2,7 +2,7 @@
 
 use App\Models\DownloadLink;
 use App\Models\User;
-use Filament\Pages\Auth\Login;
+use Filament\Auth\Pages\Login;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
@@ -18,7 +18,7 @@ it('refuses chunk uploads from guests', function () {
 
 it('lets a signed in user reach the panel and the upload page', function (string $path) {
     $this->actingAs(User::factory()->create())->get($path)->assertSuccessful();
-})->with(['/', '/upload']);
+})->with(['/', '/upload', '/upload-files', '/video-logs', '/video-logs/create', '/contacts', '/users', '/users/create', '/links', '/links/create']);
 
 it('lets a user sign in outside the local environment', function () {
     $user = User::factory()->create();

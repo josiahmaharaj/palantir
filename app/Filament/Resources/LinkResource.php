@@ -2,37 +2,43 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\LinkResource\Pages;
+use App\Filament\Resources\LinkResource\Pages\CreateLink;
+use App\Filament\Resources\LinkResource\Pages\EditLink;
+use App\Filament\Resources\LinkResource\Pages\ListLinks;
 use App\Models\Link;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class LinkResource extends Resource
 {
     protected static ?string $model = Link::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-link';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-link';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('video_id')
+        return $schema
+            ->components([
+                TextInput::make('video_id')
                     ->required()
                     ->numeric(),
-                Forms\Components\TextInput::make('link'),
-                Forms\Components\DateTimePicker::make('expired_at')
+                TextInput::make('link'),
+                DateTimePicker::make('expired_at')
                     ->required(),
-                Forms\Components\DateTimePicker::make('downloaded_at'),
-                Forms\Components\TextInput::make('ip_address'),
-                Forms\Components\TextInput::make('user_agent'),
-                Forms\Components\TextInput::make('shortcode'),
-                Forms\Components\TextInput::make('recipients'),
-                Forms\Components\DateTimePicker::make('email_sent_at'),
-                Forms\Components\DateTimePicker::make('file_uploaded_at'),
+                DateTimePicker::make('downloaded_at'),
+                TextInput::make('ip_address'),
+                TextInput::make('user_agent'),
+                TextInput::make('shortcode'),
+                TextInput::make('recipients'),
+                DateTimePicker::make('email_sent_at'),
+                DateTimePicker::make('file_uploaded_at'),
             ]);
     }
 
@@ -40,36 +46,36 @@ class LinkResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('video_id')
+                TextColumn::make('video_id')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('link')
+                TextColumn::make('link')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('expired_at')
+                TextColumn::make('expired_at')
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('downloaded_at')
+                TextColumn::make('downloaded_at')
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('ip_address')
+                TextColumn::make('ip_address')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('user_agent')
+                TextColumn::make('user_agent')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('shortcode')
+                TextColumn::make('shortcode')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('recipients')
+                TextColumn::make('recipients')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('email_sent_at')
+                TextColumn::make('email_sent_at')
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('file_uploaded_at')
+                TextColumn::make('file_uploaded_at')
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
+                TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -77,12 +83,12 @@ class LinkResource extends Resource
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -97,9 +103,9 @@ class LinkResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListLinks::route('/'),
-            'create' => Pages\CreateLink::route('/create'),
-            'edit' => Pages\EditLink::route('/{record}/edit'),
+            'index' => ListLinks::route('/'),
+            'create' => CreateLink::route('/create'),
+            'edit' => EditLink::route('/{record}/edit'),
         ];
     }
 }

@@ -4,11 +4,12 @@ namespace App\Filament\Resources\VideoLogResource\Pages;
 
 use App\Filament\Resources\VideoLogResource;
 use App\Services\VideoLogService;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Throwable;
 
 class EditVideoLog extends EditRecord
 {
@@ -73,8 +74,8 @@ class EditVideoLog extends EditRecord
             $this->notifyDelivery(VideoLogService::sendDownloadLink($this->record));
 
             // Refresh form data to show the updated file name
-            $this->refreshFormData(['media_id']);
-        } catch (\Throwable $e) {
+            $this->data['upload_path'] = $this->record->videoMedia()?->file_name;
+        } catch (Throwable $e) {
             report($e);
             $this->notifyUploadFailed('Something went wrong while saving the video. Upload it again.');
         }
@@ -125,7 +126,7 @@ class EditVideoLog extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 }

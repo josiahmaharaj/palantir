@@ -1,13 +1,15 @@
 <?php
 
+use App\Http\Controllers\Api\ChunkUploadController;
 use App\Http\Controllers\DownloadLinkController;
 use App\Http\Controllers\VideoLogController;
 use App\Http\Controllers\VideoLogVideoController;
 use App\Livewire\FileUploadPage;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/api/upload/chunk', \App\Http\Controllers\Api\ChunkUploadController::class)
-    ->withoutMiddleware([\Illuminate\Routing\Middleware\ThrottleRequests::class])
+Route::post('/api/upload/chunk', ChunkUploadController::class)
+    ->withoutMiddleware([ThrottleRequests::class])
     ->middleware('auth')
     ->name('api.upload.chunk');
 

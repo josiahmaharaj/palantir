@@ -7,7 +7,7 @@ use App\Filament\Resources\VideoLogResource;
 use App\Models\VideoLog;
 use App\Status;
 use Carbon\Carbon;
-use Saade\FilamentFullCalendar\Actions;
+use Saade\FilamentFullCalendar\Actions\CreateAction;
 use Saade\FilamentFullCalendar\Data\EventData;
 use Saade\FilamentFullCalendar\Widgets\FullCalendarWidget;
 
@@ -18,9 +18,9 @@ class CalendarWidget extends FullCalendarWidget
     protected function headerActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->mountUsing(
-                    function ($form, array $arguments) {
+                    function (array $arguments) {
                         $currentDate = $arguments['start']->format('Y-m-d');
 
                         return redirect(VideoLogResource::getUrl(name: 'create')."?date={$currentDate}");

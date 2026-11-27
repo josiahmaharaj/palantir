@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Number;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Throwable;
 
 #[Layout('components.layouts.app')]
 class FileUploadPage extends Component
@@ -80,7 +81,7 @@ class FileUploadPage extends Component
 
         try {
             $downloadLinks->send($downloadLink, new FileDownloadLink($downloadLink, Number::fileSize($media->size)));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
             $this->addError('email', 'The file was uploaded but the email could not be sent.');
         }
